@@ -6,6 +6,7 @@ import {BadRequestError} from "../utils/CustomErrors";
 import {MyTodoistTask} from "../utils/Model";
 import {myBridgesSuccess} from "../utils/Bridges";
 import {ApiService} from "./ApiService";
+import {mySettingsCard} from "../utils/Cards";
 
 export class ActionService {
     static async processRequest(doistRequest: DoistCardRequest, token: string | undefined) {
@@ -14,13 +15,25 @@ export class ActionService {
             throw new BadRequestError("No ShortLivedToken");
         }
 
-        const { action } = doistRequest;
+        const { action, extensionType } = doistRequest;
         const { params } = action;
 
-        if (action.actionType === "initial") {
-            return await ActionService.#addTasks(params, token);
+        if (extensionType === "context-menu") {
+            if (action.actionType === "initial") {
+                return await ActionService.#addTasks(params, token);
+            } else {
+                throw new BadRequestError("Unsupported action type");
+            }
+        } else if (extensionType === "settings") {
+            if (action.actionType === "initial") {
+                return Promise.resolve({card: mySettingsCard});
+            } else if (action.actionType === "submit") {
+                // TODO: implement data save
+            } else {
+                throw new BadRequestError("Unsupported action type");
+            }
         } else {
-            throw new BadRequestError("Unsupported action type");
+            throw new BadRequestError("Unsupported extension type");
         }
     }
 
