@@ -1,16 +1,22 @@
 import {
     DoistCardActionParams,
-    DoistCardRequest
+    DoistCardRequest,
 } from "@doist/ui-extensions-core";
-import {BadRequestError} from "../utils/CustomErrors";
-import {MyTodoistTask} from "../utils/Model";
-import {myBridgesSuccess} from "../utils/Bridges";
-import {ApiService} from "./ApiService";
-import {mySettingsCard} from "../utils/Cards";
+import { BadRequestError } from "../utils/CustomErrors";
+import { MyTodoistTask } from "../utils/Model";
+import {
+    settingsSavedBridgeError,
+    settingsSavedBridgeSuccess,
+    tasksSetBridgeSuccess,
+} from "../utils/Bridges";
+import { ApiService } from "./ApiService";
+import { AdaptiveCardService } from "./AdaptiveCardService";
 
 export class ActionService {
-    static async processRequest(doistRequest: DoistCardRequest, token: string | undefined) {
-
+    static async processRequest(
+        doistRequest: DoistCardRequest,
+        token: string | undefined
+    ) {
         if (!token) {
             throw new BadRequestError("No ShortLivedToken");
         }
@@ -26,9 +32,28 @@ export class ActionService {
             }
         } else if (extensionType === "settings") {
             if (action.actionType === "initial") {
-                return Promise.resolve({card: mySettingsCard});
+                return Promise.resolve({
+                    card: AdaptiveCardService.createSettingsCard([
+                        1, 7, 21, 42,
+                    ]),
+                });
             } else if (action.actionType === "submit") {
-                // TODO: implement data save
+                console.log("Data submitted!\nData:\n", action.inputs);
+                if (ActionService.#isSettingsDataValid(action.inputs)) {
+                    return Promise.resolve({
+                        card: AdaptiveCardService.createSettingsCard([
+                            1, 7, 21, 42,
+                        ]),
+                        bridges: settingsSavedBridgeSuccess,
+                    });
+                } else {
+                    return Promise.resolve({
+                        card: AdaptiveCardService.createSettingsCard([
+                            1, 7, 21, 42,
+                        ]),
+                        bridges: settingsSavedBridgeError,
+                    });
+                }
             } else {
                 throw new BadRequestError("Unsupported action type");
             }
@@ -37,11 +62,22 @@ export class ActionService {
         }
     }
 
-    static async #addTasks(params: DoistCardActionParams | undefined, token: string) {
-        let parentTaskId =  ActionService.#checkAndHandleUndefinedStringArg(params?.sourceId, "parentId");
-        let content = ActionService.#checkAndHandleUndefinedStringArg(params?.content, "content");
+    static async #addTasks(
+        params: DoistCardActionParams | undefined,
+        token: string
+    ) {
+        let parentTaskId = ActionService.#checkAndHandleUndefinedStringArg(
+            params?.sourceId,
+            "parentId"
+        );
+        let content = ActionService.#checkAndHandleUndefinedStringArg(
+            params?.content,
+            "content"
+        );
 
-        const parentTask = (await ApiService.getTaskById(token, parentTaskId))[0]
+        const parentTask = (
+            await ApiService.getTaskById(token, parentTaskId)
+        )[0];
 
         console.log(parentTask.labels);
 
@@ -51,10 +87,13 @@ export class ActionService {
             labels: parentTask.labels,
         };
 
-        const result = await ApiService.addTasksFromTemplateWithSync(token, myTask);
+        const result = await ApiService.addTasksFromTemplateWithSync(
+            token,
+            myTask
+        );
 
         console.log(result.data["sync_status"]);
-        return { bridges: myBridgesSuccess }
+        return { bridges: tasksSetBridgeSuccess };
     }
 
     static #checkAndHandleUndefinedStringArg(arg: any, argName: string) {
@@ -65,5 +104,32 @@ export class ActionService {
                 `Argument ${argName} of the request is undefined.`
             );
         }
-    };
+    }
+
+    static #isSettingsDataValid(data: any) {
+        if (
+            !data ||
+            (Object.keys(data).length === 0 && data.constructor === Object)
+        )
+            return false;
+
+        for (let field in data) {
+            if (data[field]) {
+                let number = parseInt(data[field]);
+                if (
+                    !isNaN(number) &&
+                    isFinite(number) &&
+                    number > 0 &&
+                    number < 1000000
+                ) {
+                    continue;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
 }
