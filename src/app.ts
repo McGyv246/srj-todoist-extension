@@ -15,6 +15,7 @@ import {
 import { ServerResponse } from "http";
 import { ActionService } from "./service/ActionService";
 import { IncomingMessageWithRawBody } from "./utils/Model";
+import prisma from "./utils/PrismaClient";
 
 const port = 3000;
 const app = express();
@@ -98,3 +99,9 @@ app.listen(port, () => {
 const errorResponse = (response: Response, statusCode: number) => {
     response.status(statusCode).json({ bridges: tasksSetBridgeError });
 };
+
+process.on("SIGINT", async () => {
+    console.log("Disconnecting from database and shutting down...");
+    await prisma.$disconnect();
+    process.exit(0);
+});

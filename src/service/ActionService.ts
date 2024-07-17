@@ -11,6 +11,7 @@ import {
 } from "../utils/Bridges";
 import { ApiService } from "./ApiService";
 import { AdaptiveCardService } from "./AdaptiveCardService";
+import { myConstants } from "../utils/MyConstants";
 
 export class ActionService {
     static async processRequest(
@@ -33,24 +34,24 @@ export class ActionService {
         } else if (extensionType === "settings") {
             if (action.actionType === "initial") {
                 return Promise.resolve({
-                    card: AdaptiveCardService.createSettingsCard([
-                        1, 7, 21, 42,
-                    ]),
+                    card: AdaptiveCardService.createSettingsCard(
+                        myConstants.defaultDaysDue
+                    ),
                 });
             } else if (action.actionType === "submit") {
                 console.log("Data submitted!\nData:\n", action.inputs);
                 if (ActionService.#isSettingsDataValid(action.inputs)) {
                     return Promise.resolve({
-                        card: AdaptiveCardService.createSettingsCard([
-                            1, 7, 21, 42,
-                        ]),
+                        card: AdaptiveCardService.createSettingsCard(
+                            myConstants.defaultDaysDue
+                        ),
                         bridges: settingsSavedBridgeSuccess,
                     });
                 } else {
                     return Promise.resolve({
-                        card: AdaptiveCardService.createSettingsCard([
-                            1, 7, 21, 42,
-                        ]),
+                        card: AdaptiveCardService.createSettingsCard(
+                            myConstants.defaultDaysDue
+                        ),
                         bridges: settingsSavedBridgeError,
                     });
                 }
