@@ -12,6 +12,8 @@ import {
 import { ApiService } from "./ApiService";
 import { AdaptiveCardService } from "./AdaptiveCardService";
 import { myConstants } from "../utils/MyConstants";
+import { UserService } from "./UserService";
+import { Prisma } from "@prisma/client";
 
 export class ActionService {
     static async processRequest(
@@ -22,8 +24,20 @@ export class ActionService {
             throw new BadRequestError("No ShortLivedToken");
         }
 
-        const { action, extensionType } = doistRequest;
+        const { action, extensionType, context } = doistRequest;
         const { params } = action;
+        const { user } = context;
+
+        try {
+            await UserService.createDefaultUser(Number(user.id));
+        } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                // If error.code === "P2002" it means the user already exist. Nothing must be done.
+                if (error.code !== "P2002") {
+                    throw error;
+                }
+            }
+        }
 
         if (extensionType === "context-menu") {
             if (action.actionType === "initial") {
