@@ -6,5 +6,6 @@ assets
 .dockerignore
 .gitignore
 .env
+.env*
 Dockerfile
 *.md

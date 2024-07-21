@@ -37,6 +37,7 @@ COPY --chown=node:node package*.json .
 RUN npm ci
 
 COPY --chown=node:node --from=builder usr/src/app/node_modules/.prisma/client ./node_modules/.prisma/client
+COPY --chown=node:node ./prisma ./prisma
 
 # Expose the port that the application listens on.
 EXPOSE 3000
