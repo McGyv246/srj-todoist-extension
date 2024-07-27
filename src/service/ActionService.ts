@@ -41,7 +41,11 @@ export class ActionService {
 
         if (extensionType === "context-menu") {
             if (action.actionType === "initial") {
-                return await ActionService.#addTasks(params, token);
+                return await ActionService.#addTasks(
+                    params,
+                    token,
+                    Number(user.id)
+                );
             } else {
                 throw new BadRequestError("Unsupported action type");
             }
@@ -79,7 +83,8 @@ export class ActionService {
 
     static async #addTasks(
         params: DoistCardActionParams | undefined,
-        token: string
+        token: string,
+        userId: number
     ) {
         let parentTaskId = ActionService.#checkAndHandleUndefinedStringArg(
             params?.sourceId,
@@ -104,7 +109,8 @@ export class ActionService {
 
         const result = await ApiService.addTasksFromTemplateWithSync(
             token,
-            myTask
+            myTask,
+            userId
         );
 
         console.log(result.data["sync_status"]);
