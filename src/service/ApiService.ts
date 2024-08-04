@@ -15,7 +15,7 @@ export class ApiService {
     static async addTasksFromTemplateWithSync(
         shortLivedToken: string,
         task: MyTodoistTask,
-        userId: number
+        userId: number | string
     ) {
         const commands = await ApiService.#createCommandsArray(task, userId);
 
@@ -42,7 +42,7 @@ export class ApiService {
         });
     }
 
-    static async #createCommandsArray(task: MyTodoistTask, userId: number) {
+    static async #createCommandsArray(task: MyTodoistTask, userId: number | string) {
         const dueStringList = await ApiService.#createDueStringsList(userId);
         let commandList: Array<MyCommand> = [];
 
@@ -67,7 +67,7 @@ export class ApiService {
         return commandList;
     }
 
-    static async #createDueStringsList(userId: number) {
+    static async #createDueStringsList(userId: number | string) {
         let tasks = await TaskService.getTasksByUserId(userId);
 
         let dueDaysList: string[] = [];

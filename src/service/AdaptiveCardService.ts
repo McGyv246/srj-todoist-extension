@@ -4,10 +4,10 @@ import {
     TextBlock,
     TextInput,
 } from "@doist/ui-extensions-core";
+import { Task } from "@prisma/client";
 
 export class AdaptiveCardService {
-    static createSettingsCard(initialValues: Array<number>): DoistCard {
-        // TODO: this parameter is used with hardcoded data, should be fetched from db
+    static createSettingsCard(tasks: Array<Task>): DoistCard {
         const card = new DoistCard();
         card.doistCardVersion = "0.6";
         card.addItem(
@@ -17,14 +17,14 @@ export class AdaptiveCardService {
             })
         );
 
-        initialValues.forEach((value, index) => {
+        tasks.forEach((task, index) => {
             card.addItem(
                 TextInput.from({
                     placeholder: "Insert number",
                     isRequired: true,
-                    defaultValue: `${value}`,
+                    defaultValue: `${task.daysDue}`,
                     label: `Task ${index}`,
-                    id: `input${index}`,
+                    id: `${task.id}`,
                 })
             );
         });

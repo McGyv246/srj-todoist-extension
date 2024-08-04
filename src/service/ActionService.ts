@@ -11,9 +11,9 @@ import {
 } from "../utils/Bridges";
 import { ApiService } from "./ApiService";
 import { AdaptiveCardService } from "./AdaptiveCardService";
-import { myConstants } from "../utils/MyConstants";
 import { UserService } from "./UserService";
 import { Prisma } from "@prisma/client";
+import { TaskService } from "./TaskService";
 
 export class ActionService {
     static async processRequest(
@@ -41,11 +41,7 @@ export class ActionService {
 
         if (extensionType === "context-menu") {
             if (action.actionType === "initial") {
-                return await ActionService.#addTasks(
-                    params,
-                    token,
-                    Number(user.id)
-                );
+                return await ActionService.#addTasks(params, token, user.id);
             } else {
                 throw new BadRequestError("Unsupported action type");
             }
@@ -53,22 +49,40 @@ export class ActionService {
             if (action.actionType === "initial") {
                 return Promise.resolve({
                     card: AdaptiveCardService.createSettingsCard(
-                        myConstants.defaultDaysDue
+                        await TaskService.getTasksByUserId(user.id)
                     ),
                 });
             } else if (action.actionType === "submit") {
                 console.log("Data submitted!\nData:\n", action.inputs);
+
                 if (ActionService.#isSettingsDataValid(action.inputs)) {
+                    // @ts-ignore
+                    let inputKeys = Object.keys(action.inputs).map((value) => {
+                        return Number(value);
+                    });
+                    // @ts-ignore
+                    let inputValues = Object.values(action.inputs).map(
+                        (value) => {
+                            return Number(value);
+                        }
+                    );
+
+                    await TaskService.updateTaskDaysDueById(
+                        user.id,
+                        inputKeys,
+                        inputValues
+                    );
+
                     return Promise.resolve({
                         card: AdaptiveCardService.createSettingsCard(
-                            myConstants.defaultDaysDue
+                            await TaskService.getTasksByUserId(user.id)
                         ),
                         bridges: settingsSavedBridgeSuccess,
                     });
                 } else {
                     return Promise.resolve({
                         card: AdaptiveCardService.createSettingsCard(
-                            myConstants.defaultDaysDue
+                            await TaskService.getTasksByUserId(user.id)
                         ),
                         bridges: settingsSavedBridgeError,
                     });
@@ -84,7 +98,7 @@ export class ActionService {
     static async #addTasks(
         params: DoistCardActionParams | undefined,
         token: string,
-        userId: number
+        userId: number | string
     ) {
         let parentTaskId = ActionService.#checkAndHandleUndefinedStringArg(
             params?.sourceId,
