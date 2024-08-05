@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// id is hash of user id sent by todoist for security reasons
+model User {
+  todoistId String @id
+  tasks     Task[]
+}
+
+model Task {
+  id            Int    @id @default(autoincrement())
+  User          User   @relation(fields: [userTodoistId], references: [todoistId])
+  userTodoistId String
+  daysDue       Int
+}

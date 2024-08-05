@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - srj-pg:/var/lib/postgresql/data
+    networks:
+      - srj-pg
+
+  db-administration:
+    image: dpage/pgadmin4
+    ports:
+      - 5050:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${DB_ADMIN_USER}
+      PGADMIN_DEFAULT_PASSWORD: ${DB_ADMIN_PASSWORD}
+    volumes:
+      - srj-pg-administration:/var/lib/pgadmin
+    networks:
+      - srj-pg
+
+networks:
+  srj-pg: { }
+
+volumes:
+  srj-pg: { }
+  srj-pg-administration: { }

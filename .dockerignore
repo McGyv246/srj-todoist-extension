@@ -1,1 +1,11 @@
+.git
+.github
+.docker
 node_modules
+assets
+.dockerignore
+.gitignore
+.env
+.env*
+Dockerfile
+*.md
