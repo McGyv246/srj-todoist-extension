@@ -16,7 +16,7 @@
     "@doist/todoist-api-typescript": "^3.0.2",
     "@doist/ui-extensions-core": "^4.2.0",
     "@prisma/client": "^5.17.0",
-    "axios": "^1.6.7",
+    "axios": "^1.7.4",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.4.5",
     "dotenv-expand": "^11.0.6",
